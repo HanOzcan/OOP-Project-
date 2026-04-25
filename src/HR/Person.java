@@ -12,8 +12,9 @@ public abstract class Person implements IReportable {
 		this.Ad=ad;
 		this.Soyad=soyad;
 		this.Sifre=sifre;
-		
 	}
+	public Person() {}
+	
 	//verilere kontrollu erısım ıcın get set metodları
 	public void setTc(String tc) {
 		this.TC=tc;
