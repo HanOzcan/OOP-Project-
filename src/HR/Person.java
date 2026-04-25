@@ -6,6 +6,9 @@ public abstract class Person implements IReportable {
 	private String Soyad;
 	private String Sifre;
 	
+	public Person() {
+	    // GSON ve alt sınıflar için boş constructor
+	}
 	//nesne olusturmak ıcın constructer
 	public Person(String tc, String ad, String soyad, String sifre) {
 		this.TC = tc;

@@ -30,6 +30,18 @@ public class Main {
 		System.out.println("\n**********************************");
 		
 
+	
+	// Yeni bir hasta olustur
+	Person yeniHasta = UserFactory.createUser("PATIENT", "11122233344", "Ali", "Veli", "1234", null);
+
+	// VeriMerkezi aracılıgı ile kaydet
+	if (yeniHasta instanceof Patient) {
+	    VeriMerkezi.getInstance().hastaEkle((Patient) yeniHasta);
 	}
 
-}
+	// Tum hastaları listele
+	for (Patient p : VeriMerkezi.getInstance().getHastaListesi()) {
+	    p.showUserInfo();
+	}
+
+}}
