@@ -8,7 +8,7 @@ public class Main {
 		//userFactory ile nesne uretimi
 		Person hasta1 = UserFactory.createUser("PATIENT", "123456789001", "Tuğçe", "Kalaylı", "sifresifre", null);
 		Person doktor1 = UserFactory.createUser("Doctor", "777777777777", "Sevval", "Araf", "7442", "Göz");
-		
+	
 		
 		System.out.println("Giriş kontrolleri yapılıyor...");
 		
@@ -19,6 +19,27 @@ public class Main {
 			System.out.println("Hata: Hasta girişi başarısız");
 		}
 		
+		if (hasta1 instanceof Patient && doktor1 instanceof Doctor) {
+			Patient gercekHasta = (Patient) hasta1;
+			Doctor gercekDoktor = (Doctor) doktor1;
+
+			try {
+		
+				gercekHasta.randevuAl(gercekDoktor, "25.05.2026 10:30");
+				
+				System.out.println("Aynı saate tekrar randevu alınmaya çalışılıyor...");
+				gercekHasta.randevuAl(gercekDoktor, "25.05.2026 10:30");
+
+			} catch (AppointmentException e) {
+			
+				System.out.println("SİSTEM UYARISI YAKALANDI -> " + e.getMessage());
+			}
+			
+			System.out.println("\n=== DOKTOR EKRANI ===");
+			gercekDoktor.randevulariListele();
+			gercekDoktor.showUserInfo();
+		}	
+			
 		if(hasta1!=null) {
 			hasta1.showUserInfo();
 		}
