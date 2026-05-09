@@ -8,7 +8,9 @@ public class Main {
 		//userFactory ile nesne uretimi
 		Person hasta1 = UserFactory.createUser("PATIENT", "123456789001", "Tuğçe", "Kalaylı", "sifresifre", null);
 		Person doktor1 = UserFactory.createUser("Doctor", "777777777777", "Sevval", "Araf", "7442", "Göz");
-		
+		// Main.java içine ekle
+		Admin testAdmin = new Admin("111111111111", "Ahmet", "Yılmaz", "admin123", "Süper Admin", "Bilgi İşlem");
+		VeriMerkezi.getInstance().adminEkle(testAdmin);
 		
 		System.out.println("Giriş kontrolleri yapılıyor...");
 		
