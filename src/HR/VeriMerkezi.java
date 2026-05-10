@@ -5,18 +5,20 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.JOptionPane;
+
 public class VeriMerkezi {
 
     private static VeriMerkezi instance;
 
     private List<Patient> hastaListesi;
     private List<Doctor> doktorListesi;
-    private List<Admin> adminListesi;        // Admin listesi eklendi
+    private List<Admin> adminListesi;
     private List<Appointment> randevuListesi;
 
     private final String HASTA_DOSYASI   = "hastalar.json";
     private final String DOKTOR_DOSYASI  = "doktorlar.json";
-    private final String ADMIN_DOSYASI   = "adminler.json";  // Admin dosyası eklendi
+    private final String ADMIN_DOSYASI   = "adminler.json";
     private final String RANDEVU_DOSYASI = "randevular.json";
 
     private Gson gson;
@@ -25,7 +27,9 @@ public class VeriMerkezi {
         gson = new Gson();
         this.hastaListesi  = verileriYukle(HASTA_DOSYASI,  new TypeToken<ArrayList<Patient>>(){});
         this.doktorListesi = verileriYukle(DOKTOR_DOSYASI, new TypeToken<ArrayList<Doctor>>(){});
-        this.adminListesi  = verileriYukle(ADMIN_DOSYASI,  new TypeToken<ArrayList<Admin>>(){});  // Admin yüklendi
+        this.adminListesi  = verileriYukle(ADMIN_DOSYASI,  new TypeToken<ArrayList<Admin>>(){});
+        this.randevuListesi = verileriYukle(RANDEVU_DOSYASI, new TypeToken<ArrayList<Appointment>>(){});
+        randevulariDagit(); // Yüklenen randevuları hasta ve doktorlara dağıt
     }
 
     public static VeriMerkezi getInstance() {
@@ -35,29 +39,82 @@ public class VeriMerkezi {
         return instance;
     }
 
-    public void verileriKaydet() {
-        dosyayaYaz(HASTA_DOSYASI,  hastaListesi);
-        dosyayaYaz(DOKTOR_DOSYASI, doktorListesi);
-        dosyayaYaz(ADMIN_DOSYASI,  adminListesi);  // Admin kaydediliyor
+    // Randevuları hasta ve doktor nesnelerine dağıtan metot
+    private void randevulariDagit() {
+        for (Appointment randevu : randevuListesi) {
+            try {
+                String[] hastaParts = randevu.getHastaAdi().split(" ");
+                if (hastaParts.length < 2) continue;
+
+                for (Patient hasta : hastaListesi) {
+                    if (hasta.getAd().equals(hastaParts[0]) &&
+                        hasta.getSoyad().equals(hastaParts[1])) {
+                        hasta.randevuListesiInit();
+                        hasta.getRandevuListesi().add(randevu);
+                        break;
+                    }
+                }
+                for (Doctor doktor : doktorListesi) {
+                    String tamAd = "Dr. " + doktor.getAd() + " " + doktor.getSoyad();
+                    if (tamAd.equals(randevu.getDoktorAdi())) {
+                        doktor.doktorRandevulariInit();
+                        doktor.getDoktorRandevulari().add(randevu);
+                        break;
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("Randevu dağıtım hatası: " + e.getMessage());
+            }
+        }
     }
+
+    public void verileriKaydet() {
+        dosyayaYaz(HASTA_DOSYASI,   hastaListesi);
+        dosyayaYaz(DOKTOR_DOSYASI,  doktorListesi);
+        dosyayaYaz(ADMIN_DOSYASI,   adminListesi);
+        dosyayaYaz(RANDEVU_DOSYASI, randevuListesi); // Randevular ayrı kaydediliyor
+    }
+    private <T> List<T> verileriYukle(String dosyaYolu, TypeToken<?> typeToken) {
+        File dosya = new File(dosyaYolu);
+        if (!dosya.exists() || dosya.length() == 0) return new ArrayList<>();
+        try (Reader reader = new FileReader(dosyaYolu)) {
+            List<T> yuklenenListe = gson.fromJson(reader, typeToken.getType());
+            return (yuklenenListe != null) ? yuklenenListe : new ArrayList<>();
+        } catch (com.google.gson.JsonSyntaxException e) {
+            JOptionPane.showMessageDialog(null,
+                "Dosya bozuk, temizleniyor: " + dosyaYolu,
+                "Veri Hatası", JOptionPane.WARNING_MESSAGE);
+            dosya.delete();
+            return new ArrayList<>();
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(null,
+                "Okuma hatası: " + dosyaYolu + "\n" + e.getMessage(),
+                "Dosya Hatası", JOptionPane.ERROR_MESSAGE);
+            return new ArrayList<>();
+        }
+    }
+
+    // Merkezi randevu ekleme — hasta ve doktor listelerini de günceller
+    public void randevuEkle(Appointment randevu, Patient hasta, Doctor doktor) {
+        if (randevuListesi == null) randevuListesi = new ArrayList<>();
+        hasta.randevuListesiInit();
+        doktor.doktorRandevulariInit();
+
+        randevuListesi.add(randevu);
+        hasta.getRandevuListesi().add(randevu);
+        doktor.getDoktorRandevulari().add(randevu);
+        verileriKaydet();
+    }
+
+    public List<Appointment> getRandevuListesi() { return randevuListesi; }
 
     private <T> void dosyayaYaz(String dosyaYolu, List<T> liste) {
         try (Writer writer = new FileWriter(dosyaYolu)) {
             gson.toJson(liste, writer);
         } catch (IOException e) {
-            System.err.println("Hata: Veriler kaydedilemedi (" + dosyaYolu + ") - " + e.getMessage());
-        }
-    }
-
-    private <T> List<T> verileriYukle(String dosyaYolu, TypeToken<?> typeToken) {
-        try (Reader reader = new FileReader(dosyaYolu)) {
-            List<T> yuklenenListe = gson.fromJson(reader, typeToken.getType());
-            return (yuklenenListe != null) ? yuklenenListe : new ArrayList<>();
-        } catch (FileNotFoundException e) {
-            return new ArrayList<>();
-        } catch (IOException e) {
-            System.err.println("Dosya okuma hatası: " + e.getMessage());
-            return new ArrayList<>();
+            JOptionPane.showMessageDialog(null,
+                "Kaydetme hatası: " + dosyaYolu + "\n" + e.getMessage(),
+                "Dosya Hatası", JOptionPane.ERROR_MESSAGE);
         }
     }
 

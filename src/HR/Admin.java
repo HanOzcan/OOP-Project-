@@ -23,8 +23,7 @@ public class Admin extends Person {
     public boolean doktorEkle(String tc, String ad, String soyad, String sifre, String bolum) {
         if (ad == null || ad.isEmpty() || soyad == null || soyad.isEmpty() ||
                 sifre == null || sifre.isEmpty() || bolum == null || bolum.isEmpty()
-                || tc == null || tc.isEmpty()) {
-            System.out.println("Lütfen tüm alanları doldurunuz!!");
+                || tc == null || tc.isEmpty() || tc.length() != 11) {
             return false;
         }
         for (Doctor doctorTemp : VeriMerkezi.getInstance().getDoktorListesi()) {
@@ -44,16 +43,38 @@ public class Admin extends Person {
             Doctor doctorTemp = it.next();
             if (doctorTemp.getTc().equals(tc)) {
                 it.remove();
-                System.out.println("Silme işlemi başarılı.");
                 VeriMerkezi.getInstance().verileriKaydet();
                 return true;
             }
         }
-        System.out.println("Doktor bulunamadı.");
         return false;
+    }
+    public boolean hastaEkle(String tc, String ad, String soyad, String sifre) {
+        if (tc == null || tc.isEmpty() || tc.length() != 11 ||
+            ad == null || ad.isEmpty() ||
+            soyad == null || soyad.isEmpty() ||
+            sifre == null || sifre.isEmpty()) {
+            return false;
+        }
+        for (Patient hastaTemp : VeriMerkezi.getInstance().getHastaListesi()) {
+            if (hastaTemp.getTc().equals(tc)) {
+                return false;
+            }
+        }
+        Patient hasta = new Patient(tc, ad, soyad, sifre);
+        VeriMerkezi.getInstance().hastaEkle(hasta);
+        return true;
     }
 
     public void aktifRandevuListele() {
+        List<Appointment> randevular = VeriMerkezi.getInstance().getRandevuListesi();
+        if (randevular == null || randevular.isEmpty()) {
+            System.out.println("Aktif randevu bulunmamaktadır.");
+            return;
+        }
+        for (Appointment r : randevular) {
+            System.out.println(r);
+        }
     }
 
     @Override

@@ -9,6 +9,8 @@ public static Person createUser(String type, String tc, String ad, String soyad,
             return new Patient(tc, ad, soyad, sifre);
         }else if(type.equalsIgnoreCase("Doctor")){
         	return new Doctor(tc, ad, soyad, sifre, extra);
+        }else if (type.equalsIgnoreCase("ADMIN")) {
+            return new Admin(tc, ad, soyad, sifre, extra, "Bilgi İşlem");
         }
         return null;	
      }    
